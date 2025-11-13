@@ -34,7 +34,7 @@ export const MonthButtons: React.FC<MonthButtonsProps> = ({
           className={`p-2 rounded-md cursor-pointer hover:bg-blue-500 transition-colors duration-300 ${
             selectedMonth === i
               ? "bg-black text-white"
-              : "bg-trasnparent border-2"
+              : "bg-transparent border-2"
           }`}
         >
           {month}

@@ -9,6 +9,10 @@ interface ExpenseFormProps {
     paymentMethod: string;
     installments: string;
     note: string;
+    isFixed?: boolean;
+    startDate?: string;
+    active?: boolean;
+    frequency?: "monthly";
   }) => void;
 }
 
@@ -20,18 +24,37 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
     paymentMethod: "",
     installments: "",
     note: "",
+    isFixed: false, // NOVO
   });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const target = e.target as HTMLInputElement;
+    const { name, value, type, checked } = target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
+  
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+
+    const payload = {
+      ...formData,
+      isFixed: formData.isFixed,
+      startDate: formData.isFixed
+        ? new Date().toISOString().split("T")[0]
+        : undefined,
+      active: formData.isFixed ? true : undefined,
+      frequency: formData.isFixed ? "monthly" as const : undefined,
+
+    };
+
+    onSubmit(payload);
+
     setFormData({
       type: "",
       day: "",
@@ -39,12 +62,12 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
       paymentMethod: "",
       installments: "",
       note: "",
+      isFixed: false,
     });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3 mt-4">
-      {/* Select padronizado para tipo de gasto */}
       <select
         name="type"
         value={formData.type}
@@ -77,6 +100,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
           Outros
         </option>
       </select>
+
       <input
         name="day"
         type="number"
@@ -88,6 +112,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
         max={31}
         required
       />
+
       <input
         name="amount"
         type="number"
@@ -119,6 +144,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
         <option value="cartão">Cartão</option>
         <option value="pix">Pix</option>
       </select>
+
       {formData.paymentMethod === "cartão" && (
         <input
           name="installments"
@@ -129,6 +155,21 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
           className="w-full p-2 border rounded"
         />
       )}
+
+      {/* Gasto fixo */}
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          name="isFixed"
+          checked={formData.isFixed}
+          onChange={handleChange}
+          className="w-4 h-4"
+        />
+        <label htmlFor="isFixed" className="text-sm">
+          Gasto fixo (ex.: aluguel, streaming)
+        </label>
+      </div>
+
       <button
         type="submit"
         className="w-full p-2 bg-green-600 text-white rounded cursor-pointer hover:bg-green-500 transition duration-200"

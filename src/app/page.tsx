@@ -8,13 +8,16 @@ import { ExpenseSummary } from "@/components/expenseSummary";
 import { ExpenseByTypeChart } from "@/components/expenseByTypeChart";
 import { MonthlyExpensesChart } from "@/components/monthlyExpensesChart";
 import { CalendarView } from "@/components/calendarView";
-
-import { Expense, AddExpenseData, MappedExpense } from "./interfaces/expense";
+import { AuthButton } from "@/components/AuthButton";
+import { Expense, AddExpenseData } from "./interfaces/expense";
+import { UserCard } from "@/components/UserCard";
+import Image from "next/image";
 
 import {
   generateInstallments,
   saveExpenses,
   filterExpensesByMonthYear,
+  getFixedExpensesForMonth,
 } from "./utils/expense";
 
 export default function HomePage() {
@@ -40,25 +43,74 @@ export default function HomePage() {
     setExpenses((prev) => [...prev, ...saved]);
   };
 
-  const mappedExpenses: MappedExpense[] = expenses.map(({ _id, ...rest }) => ({
-    id: _id || "",
-    ...rest,
+  const mappedExpenses: Expense[] = expenses.map((expense) => ({
+    ...expense,
+    _id: expense._id ?? "",
   }));
 
+  const fixedExpensesForYear = Array.from({ length: 12 }, (_, month) => {
+    const date = new Date(selectedYear, month, 1);
+    return getFixedExpensesForMonth(mappedExpenses, date);
+  }).flat();
+
+  const allExpensesWithFixes = [...mappedExpenses, ...fixedExpensesForYear];
+
   const handleDelete = async (id: string) => {
-    await fetch(`/api/expenses/${id}`, { method: "DELETE" });
-    setExpenses((prev) => prev.filter((expense) => expense._id !== id));
+    const now = new Date(selectedYear, selectedMonth ?? 0, 1);
+    const canceledAt = now.toISOString();
+
+    const targetExpense = mappedExpenses.find((e) => e._id === id);
+    const isFixed = targetExpense?.isFixed;
+
+    if (isFixed) {
+      await fetch(`/api/expenses/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ canceledAt }),
+      });
+
+      setExpenses((prev) =>
+        prev.map((expense) =>
+          expense._id === id ? { ...expense, canceledAt } : expense
+        )
+      );
+    } else {
+      await fetch(`/api/expenses/${id}`, { method: "DELETE" });
+      setExpenses((prev) => prev.filter((expense) => expense._id !== id));
+    }
   };
 
-  const filteredExpenses = filterExpensesByMonthYear(
-    mappedExpenses,
-    selectedYear,
-    selectedMonth!
-  );
+  const now = new Date(selectedYear, selectedMonth ?? 0, 1);
+  const fixedExpenses = getFixedExpensesForMonth(mappedExpenses, now);
+
+  const filteredExpenses = [
+    ...filterExpensesByMonthYear(mappedExpenses, selectedYear, selectedMonth!),
+    ...fixedExpenses,
+  ];
+
+  const expensesForChart = allExpensesWithFixes.filter((e) => {
+    if (!e.isFixed) return true;
+    const date = new Date(e.date);
+    const canceledAt = e.canceledAt ? new Date(e.canceledAt) : null;
+    return !canceledAt || date < canceledAt;
+  });
 
   return (
-    <main className="w-[100vw] mt-4 bg-gray-200 h-full text-black rounded-md flex flex-col gap-4 p-10">
-      <h1 className="text-2xl font-bold mb-4">Gerenciador de Finanças</h1>
+<main className="flex-1 bg-gray-200 h-full text-black flex flex-col gap-4 p-10 pt-6 overflow-x-hidden">
+      <div className="flex items-center gap-3">
+  <Image
+    src="/finzeit-logo.png"
+    alt="FinZeit Logo"
+    width={100}
+    height={100}
+    className="rounded"
+  />
+</div>
+
+      {/* 👤 Cartão de usuário personalizado */}
+      <UserCard />
 
       <YearSelector selectedYear={selectedYear} onChange={setSelectedYear} />
 
@@ -78,7 +130,7 @@ export default function HomePage() {
         <div className="w-[50vw]">
           {selectedMonth !== null && (
             <ExpenseSummary
-              expenses={mappedExpenses}
+              expenses={filteredExpenses}
               year={selectedYear}
               month={selectedMonth}
               onDelete={handleDelete}
@@ -100,15 +152,14 @@ export default function HomePage() {
       <div className="flex gap-4 mt-4 flex-col">
         {selectedMonth !== null && (
           <div className="flex-1">
-            <ExpenseByTypeChart
-              expenses={mappedExpenses}
-              year={selectedYear}
-              month={selectedMonth}
-            />
+            <ExpenseByTypeChart expenses={expensesForChart} year={selectedYear} />
           </div>
         )}
         {selectedMonth !== null && (
-          <MonthlyExpensesChart expenses={mappedExpenses} year={selectedYear} />
+          <MonthlyExpensesChart
+            expenses={expensesForChart}
+            year={selectedYear}
+          />
         )}
       </div>
     </main>
