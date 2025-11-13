@@ -1,9 +1,10 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
+import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { getUserCollection } from "@/lib/user-collection";
 
-// 🔓 Agora exportamos isso para reusar em outras rotas
-export const authOptions: NextAuthOptions = {
+console.log("GOOGLE_CLIENT_ID LOADING =", process.env.GOOGLE_CLIENT_ID);
+
+export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GoogleProvider({
@@ -11,8 +12,9 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
+
   callbacks: {
-    async signIn({ user }) {
+    async signIn({ user }: { user: any }) {
       const users = await getUserCollection();
 
       const existingUser = await users.findOne({ email: user.email });
@@ -22,15 +24,15 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           image: user.image,
-          displayName: "",       // nome personalizado será definido pelo usuário
-          customImage: "",       // imagem personalizada também
+          displayName: "",
+          customImage: "",
         });
       }
 
       return true;
     },
 
-    async session({ session }) {
+    async session({ session }: { session: any }) {
       const users = await getUserCollection();
 
       if (!session?.user?.email) return session;
@@ -47,6 +49,5 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-// ✅ O handler continua igual
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

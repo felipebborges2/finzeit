@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { SessionWrapper } from "@/components/SessionWrapper";
+
+import { Providers } from "./providers";
 import { Sidebar } from "@/components/Sidebar";
 
 const geistSans = Geist({
@@ -16,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "FinZeit",
-  description: "Gerencie seus gastos com controle",
+  description: "Tenha sua vida sob controle",
 };
 
 export default function RootLayout({
@@ -29,12 +30,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} bg-gray-200 text-black h-full w-full overflow-x-hidden`}
       >
-        <SessionWrapper>
+        <Providers>
           <div className="flex min-h-screen w-full">
             <Sidebar />
             <main className="flex-1 overflow-x-hidden">{children}</main>
           </div>
-        </SessionWrapper>
+        </Providers>
       </body>
     </html>
   );
