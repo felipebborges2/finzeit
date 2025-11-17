@@ -35,10 +35,15 @@ It features Google authentication, category analytics, monthly breakdowns, dynam
 ---
 
 ## 🖼️ Screenshots  
-> *(Add your real screenshots in `/screens` and update the filenames below)*
 
 ### 📊 Dashboard
 ![Dashboard](./screens/dashboard.jpeg)
+
+### 💸 Expenses
+![Expenses](./screens/despesas.jpeg)
+
+### 💰 Income
+![Income](./screens/receitas.jpeg)
 
 ---
 
@@ -48,6 +53,15 @@ It features Google authentication, category analytics, monthly breakdowns, dynam
 git clone https://github.com/felipebborges2/finzeit.git
 cd finzeit
 npm install
-
+```
+---
+ 
 ## 🤝 Contributions
 Contributions, issues, and feature requests are welcome!
+
+---
+
+## 📄 License
+MIT License © 2025 — Felipe Borges
+
+---
