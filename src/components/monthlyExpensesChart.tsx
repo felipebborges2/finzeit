@@ -5,7 +5,6 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  Cell,
 } from "recharts";
 import { TooltipProps } from "recharts";
 import {
@@ -80,7 +79,7 @@ export const MonthlyExpensesChart = ({
   const allTypes = Array.from(new Set(expenses.map((e) => e.type)));
 
   const monthlyTotals = Array.from({ length: 12 }, (_, month) => {
-    const monthData: any = {
+    const monthData: Record<string, string | number> = {
       name: new Date(0, month).toLocaleString("pt-BR", { month: "short" }),
     };
 

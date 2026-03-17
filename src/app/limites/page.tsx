@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "../api/auth/[...nextauth]/route";
-import { getUserCollection } from "@/lib/user-collection";
+import { authOptions } from "@/lib/auth";
 import { LimitsForm } from "@/components/LimitsForm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -12,16 +11,13 @@ export default async function LimitesPage() {
 }
 
 
-  const users = await getUserCollection();
-  const user = await users.findOne({ email: session.user.email });
-
   const cookie = cookies().toString();
   const res = await fetch(`${process.env.NEXTAUTH_URL}/api/expenses`, {
     headers: { Cookie: cookie },
   });
 
   const expenses: { type: string }[] = await res.json();
-  const types = Array.from(new Set(expenses.map((e: any) => e.type)));
+  const types = Array.from(new Set(expenses.map((e) => e.type)));
 
   return (
     <div className="bg-gray-200 text-black min-h-screen w-full p-6">

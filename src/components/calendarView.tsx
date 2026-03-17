@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { CalendarViewProps } from "../app/interfaces/calendarProps";
 import { Expense } from "../app/interfaces/expense";
-import { monthName } from "../app/utils/monthName";
 
 export const CalendarView: React.FC<CalendarViewProps> = ({
   year,

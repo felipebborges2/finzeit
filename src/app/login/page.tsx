@@ -34,7 +34,8 @@ export default function LoginPage() {
             font-semibold
           "
         >
-          <img 
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="https://www.svgrepo.com/show/475656/google-color.svg"
             alt="Google"
             className="w-6 h-6"

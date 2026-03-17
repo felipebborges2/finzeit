@@ -2,21 +2,12 @@
 
 import { useState } from "react";
 import { ExpenseForm } from "@/components/expenseForm";
+import { AddExpenseData } from "@/app/interfaces/expense";
 
 export default function DespesasPage() {
-  const [items, setItems] = useState<
-    {
-      type: string;
-      day: string;
-      amount: string;
-      paymentMethod: string;
-      installments: string;
-      note: string;
-      isFixed?: boolean;
-    }[]
-  >([]);
+  const [items, setItems] = useState<AddExpenseData[]>([]);
 
-  const handleAdd = (data: any) => {
+  const handleAdd = (data: AddExpenseData) => {
     setItems((prev) => [...prev, data]);
   };
 

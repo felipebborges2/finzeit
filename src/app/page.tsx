@@ -8,11 +8,11 @@ import { ExpenseSummary } from "@/components/expenseSummary";
 import { ExpenseByTypeChart } from "@/components/expenseByTypeChart";
 import { MonthlyExpensesChart } from "@/components/monthlyExpensesChart";
 import { CalendarView } from "@/components/calendarView";
-import { AuthButton } from "@/components/AuthButton";
 import { Expense, AddExpenseData } from "./interfaces/expense";
 import { UserCard } from "@/components/UserCard";
 import Image from "next/image";
 
+import { Income } from "./interfaces/income";
 import {
   generateInstallments,
   saveExpenses,
@@ -26,11 +26,22 @@ export default function HomePage() {
   );
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [incomes, setIncomes] = useState<Income[]>([]);
+  // limits é um dicionário: { "alimentacao": 500, "transporte": 200, ... }
+  const [limits, setLimits] = useState<Record<string, number>>({});
 
   useEffect(() => {
     fetch("/api/expenses")
       .then((res) => res.json())
-      .then((data) => setExpenses(data));
+      .then((data) => { if (Array.isArray(data)) setExpenses(data); });
+
+    fetch("/api/incomes")
+      .then((res) => res.json())
+      .then((data) => { if (Array.isArray(data)) setIncomes(data); });
+
+    fetch("/api/user/limits")
+      .then((res) => res.json())
+      .then((data) => { if (data && typeof data === "object" && !Array.isArray(data)) setLimits(data); });
   }, []);
 
   const handleAddExpense = async (data: AddExpenseData) => {
@@ -90,6 +101,14 @@ export default function HomePage() {
     ...fixedExpenses,
   ];
 
+  // Filtra receitas pelo mês e ano selecionados e soma os valores
+  // parseFloat converte o amount (string) em número para a soma
+  const totalIncome = incomes
+    .filter(
+      (inc) => inc.month === selectedMonth && inc.year === selectedYear
+    )
+    .reduce((sum, inc) => sum + parseFloat(inc.amount), 0);
+
   const expensesForChart = allExpensesWithFixes.filter((e) => {
     if (!e.isFixed) return true;
     const date = new Date(e.date);
@@ -134,6 +153,8 @@ export default function HomePage() {
               year={selectedYear}
               month={selectedMonth}
               onDelete={handleDelete}
+              totalIncome={totalIncome}
+              limits={limits}
             />
           )}
         </div>

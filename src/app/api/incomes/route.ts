@@ -3,10 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import clientPromise from "@/lib/mongodb";
 
-// GET /api/expenses → lista apenas as despesas do usuário logado
+// GET /api/incomes → lista todas as receitas do usuário logado
 export async function GET() {
-  // getServerSession lê o cookie de sessão do Next.js no lado do servidor
-  // e retorna os dados do usuário autenticado (ou null se não estiver logado)
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
@@ -16,16 +14,15 @@ export async function GET() {
   const client = await clientPromise;
   const db = client.db("finance");
 
-  // Filtra as despesas pelo userId (email) do usuário logado
-  const expenses = await db
-    .collection("expenses")
+  const incomes = await db
+    .collection("incomes")
     .find({ userId: session.user.email })
     .toArray();
 
-  return NextResponse.json(expenses);
+  return NextResponse.json(incomes);
 }
 
-// POST /api/expenses → cria uma nova despesa para o usuário logado
+// POST /api/incomes → salva uma nova receita para o usuário logado
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
 
@@ -38,11 +35,9 @@ export async function POST(req: Request) {
   const client = await clientPromise;
   const db = client.db("finance");
 
-  // Injeta o userId no documento antes de salvar
-  // Assim a despesa sempre fica "amarrada" ao dono dela
-  const expenseWithOwner = { ...body, userId: session.user.email };
+  const incomeWithOwner = { ...body, userId: session.user.email };
 
-  const result = await db.collection("expenses").insertOne(expenseWithOwner);
+  const result = await db.collection("incomes").insertOne(incomeWithOwner);
 
   return NextResponse.json({ insertedId: result.insertedId });
 }

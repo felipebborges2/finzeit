@@ -11,6 +11,7 @@ export const UserCard = () => {
 
   return (
     <div className="flex items-center gap-4 bg-white border p-4 rounded shadow-md max-w-md">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={customImage || image || '/default.png'}
         alt="Foto de perfil"
